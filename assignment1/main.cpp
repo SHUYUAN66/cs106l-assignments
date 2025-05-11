@@ -25,9 +25,9 @@ const std::string COURSES_NOT_OFFERED_PATH = "student_output/courses_not_offered
  * Hint: Remember what types C++ streams work with?!
  */
 struct Course {
-  /* STUDENT TODO */ title;
-  /* STUDENT TODO */ number_of_units;
-  /* STUDENT TODO */ quarter;
+  /* STUDENT TODO */ std::string title;
+  /* STUDENT TODO */ std::string number_of_units;
+  /* STUDENT TODO */ std::string quarter;
 };
 
 /**
@@ -58,8 +58,24 @@ struct Course {
  * @param filename The name of the file to parse.
  * @param courses  A vector of courses to populate.
  */
-void parse_csv(std::string filename, std::vector<Course> courses) {
+void parse_csv(std::string filename, std::vector<Course>& courses) {
+  // Here, we have to add & to direct the pointer to the position. Or the courses wouldn't be updated
   /* (STUDENT TODO) Your code goes here... */
+  // split function
+  std::ifstream records(filename);
+  std::string record;
+  // skip the first line
+  std::getline(records, record);
+  // "Keep reading one line at a time from the file into the variable line until there's nothing left (i.e., end of file)."
+  while (std::getline(records,record)){
+    // std::cout << "Number of courses: " << courses.size() << std::endl;
+    // we store each line in record
+    // use split here to split "," and store each to the struct Course
+    auto parts =  split(record, ',');
+    Course cs{parts[0], parts[1], parts[2]};
+    courses.push_back(cs);
+  }
+  return;
 }
 
 /**
@@ -80,8 +96,31 @@ void parse_csv(std::string filename, std::vector<Course> courses) {
  * @param all_courses A vector of all courses gotten by calling `parse_csv`.
  *                    This vector will be modified by removing all offered courses.
  */
-void write_courses_offered(std::vector<Course> all_courses) {
+void write_courses_offered(std::vector<Course>& all_courses) {
   /* (STUDENT TODO) Your code goes here... */
+  std::ofstream offered_file(COURSES_OFFERED_PATH);
+  if (!offered_file.is_open()) {
+    std::cerr << "❌ Failed to open file: " << COURSES_OFFERED_PATH << std::endl;
+  };
+  offered_file << "Title,Number of Units,Quarter" << "\n";
+  // Last time, I failed to parse because of no &. So i cannot loop the all_courses
+  std::cout << "Number of all courses: " << all_courses.size() << std::endl;
+  std::vector<Course> offered;
+  for (Course cs : all_courses){
+    if (cs.quarter != "null"){
+      offered_file << cs.title << ",";
+      offered_file << cs.number_of_units << ",";
+      offered_file << cs.quarter <<'\n';
+      //delete_elem_from_vector(all_courses, cs);
+      offered.push_back(cs);
+    }
+  }
+  for (auto& i : offered){
+      // delete offered course from all courses
+    delete_elem_from_vector(all_courses, i);
+  }
+    
+  return;
 }
 
 /**
@@ -97,8 +136,26 @@ void write_courses_offered(std::vector<Course> all_courses) {
  *
  * @param unlisted_courses A vector of courses that are not offered.
  */
-void write_courses_not_offered(std::vector<Course> unlisted_courses) {
+void write_courses_not_offered(std::vector<Course>& unlisted_courses) {
   /* (STUDENT TODO) Your code goes here... */
+  std::cout << "Number of not courses: " << unlisted_courses.size() << std::endl;
+  std::ofstream unoffered_file(COURSES_NOT_OFFERED_PATH);
+  unoffered_file << "Title,Number of Units,Quarter" << "\n";
+  std::vector<Course> unoffered;
+  for (Course cs : unlisted_courses){
+    
+    unoffered_file << cs.title << ",";
+    unoffered_file << cs.number_of_units << ",";
+    unoffered_file << cs.quarter <<'\n';
+    //delete_elem_from_vector(all_courses, cs);
+    unoffered.push_back(cs);
+    
+  }
+  for (auto& i : unoffered){
+      // delete offered course from all courses
+    delete_elem_from_vector(unlisted_courses, i);
+  }
+  return;
 }
 
 int main() {
@@ -109,7 +166,7 @@ int main() {
   parse_csv("courses.csv", courses);
 
   /* Uncomment for debugging... */
-  // print_courses(courses);
+  //print_courses(courses);
 
   write_courses_offered(courses);
   write_courses_not_offered(courses);
